@@ -30,12 +30,13 @@ public class Login extends JFrame implements ActionListener {
     username = new JTextField(20);
     this.add(username);
     
+    
     password = new JTextField(20);
     this.add(password);
     
     JButton login = new JButton("Login!");
     login.addActionListener(this);
-    // we are adding on a label to the button here
+    // wee adding on a label to the button here
     // so later we will know which button has been clicked.
     login.setActionCommand("login");
     this.add(login);
