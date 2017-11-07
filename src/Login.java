@@ -37,7 +37,7 @@ public class Login extends JFrame implements ActionListener {
     JButton login = new JButton("Login!");
     login.addActionListener(this);
     // wee adding on a label to the button here
-    // so lte we will know which button has been clicked.
+    // so lte we will know whih button has been clicked.
     login.setActionCommand("login");
     this.add(login);
     
