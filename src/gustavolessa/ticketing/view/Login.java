@@ -8,13 +8,14 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 
 public class Login extends JFrame{
 
 	private JTextField userField = null;
-	private JTextField passField = null;
+	private JPasswordField passField = null;
 	private String userID;
 
 	gustavolessa.ticketing.controller.Controller controller= new gustavolessa.ticketing.controller.Controller(this);
@@ -23,7 +24,7 @@ public class Login extends JFrame{
 		return userField.getText();
 	}
 	public String getPassField() {
-		return passField.getText();
+		return new String(passField.getPassword());
 	}
 
 	public Login(){
@@ -32,6 +33,7 @@ public class Login extends JFrame{
 		setVisible(true);
 		this.setLayout(new GridLayout(6,1));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.setTitle("Login");
 
 		JLabel nameLabel = new JLabel("Username");
 		nameLabel.setHorizontalAlignment(JLabel.CENTER);
@@ -47,7 +49,7 @@ public class Login extends JFrame{
 		this.add(passLabel);
 
 		JPanel passPanel = new JPanel();
-		passField = new JTextField(20);
+		passField = new JPasswordField(20);
 		passPanel.add(passField);
 		this.add(passPanel);
 
@@ -58,7 +60,7 @@ public class Login extends JFrame{
 		login.setActionCommand("login");
 		loginPanel.add(login);
 		this.add(loginPanel);
-
+	
 		validate();
 		repaint();
 	}
