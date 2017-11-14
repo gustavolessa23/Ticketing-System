@@ -61,6 +61,7 @@ public class Admin extends JFrame{
 	
 	//Constructor that takes userID as parameter
 	public Admin(String userID){
+		//TODO change layout
 		
 		this.userID = userID;
 		setSize(400,600);

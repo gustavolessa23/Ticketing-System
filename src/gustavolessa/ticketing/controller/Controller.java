@@ -1,14 +1,11 @@
 package gustavolessa.ticketing.controller;
 
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.util.ArrayList;
-
+import java.sql.ResultSet;
 import javax.swing.JOptionPane;
-
 
 public class Controller implements ActionListener, WindowListener {
 	// Declare and instantiate Main class in order to be able to use it's methods and components
@@ -55,7 +52,7 @@ public class Controller implements ActionListener, WindowListener {
 	public void login() {
 		String username = login.getUserField();
 		String password = login.getPassField();
-		String[] result = gustavolessa.ticketing.model.DatabaseOperations.loginWithDatabase(username, password);
+		String[] result = gustavolessa.ticketing.model.DatabaseOperations.login(username, password);
 		String userID = result[0];
 		String userType = result[1];
 		if(userID == null || userType == null) {
@@ -119,6 +116,31 @@ public class Controller implements ActionListener, WindowListener {
 		return result;
 	}
 	
+	public int addTicket(String priority, String techId, String description) {
+		int result = gustavolessa.ticketing.model.DatabaseOperations.addTicket(priority, techId, description);
+		return result;
+	}
+
+	public void viewTicket(int idToView) {
+		ResultSet result = gustavolessa.ticketing.model.DatabaseOperations.viewTicketDetails(idToView);
+		tech.viewTicketDetails(result);
+	}
+	
+	public int updateTicket(String ticketId, String techNumber, String priority, String description) {
+		int result = gustavolessa.ticketing.model.DatabaseOperations.updateTicket(ticketId, techNumber, priority, description);
+		return result;
+	}
+	
+	public int deleteTicket(String ticketId) {
+		int result = gustavolessa.ticketing.model.DatabaseOperations.deleteTicket(ticketId);
+		return result;
+	}
+
+	public int closeTicket(String ticketId) {
+		int result = gustavolessa.ticketing.model.DatabaseOperations.closeTicket(ticketId);
+		return result;
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
@@ -132,12 +154,17 @@ public class Controller implements ActionListener, WindowListener {
 			changePass();
 		} else if(e.getActionCommand().equals("adminLogout")){
 			logout("Admin");
+		} else if(e.getActionCommand().equals("techLogout")){
+			logout("Tech");
+		} else if(e.getActionCommand().equals("managerLogout")){
+			logout("Manager");
 		} else if(e.getActionCommand().equals("newTicketButton")){
 			tech.addTicketWindow();
-		} 
+		} else if(e.getActionCommand().equals("viewTicketsButton")){
+			tech.viewTicketsWindow(gustavolessa.ticketing.model.DatabaseOperations.viewTickets());
+		}
 
 	}
-
 
 	@Override
 	public void windowOpened(WindowEvent e) {
@@ -181,10 +208,6 @@ public class Controller implements ActionListener, WindowListener {
 
 	}
 
-	public int addTicket(String priority, String techId, String description) {
-		int result = gustavolessa.ticketing.model.DatabaseOperations.addTicket(priority, techId, description);
-		return result;
-	}
 
 
 }

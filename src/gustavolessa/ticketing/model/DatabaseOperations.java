@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 public class DatabaseOperations {
 
-	public static String[] loginWithDatabase(String username, String password){
+	public static String[] login(String username, String password){
 		String userID;
 		String userType;
 		String[] result = new String[2];
@@ -155,18 +155,122 @@ public class DatabaseOperations {
 		return result;
 	}
 	
-	public static void updateTicket() {
-		
-	}
-	
-	public static void deleteTicket() {
-		
-	}
-	
-	public static void viewTickets() {
-		
-	}
+	public static int updateTicket(String ticketId, String techNumber, String priority, String description) {
+		int result = 0;
+		try {
 
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+
+		}catch(Exception e ){}
+
+
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1/ticketing?user=root&password=");
+
+			stmt = conn.createStatement();
+		
+
+			result = stmt.executeUpdate("UPDATE `tickets` SET `tech_id` = '"+Integer.parseInt(techNumber.trim())+"', `description` = '"+description+"', `priority` = '"+priority+"' WHERE `id` = '"+Integer.parseInt(ticketId.trim())+"';");
+	
+
+		} catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}   
+		return result;
+	}
+	
+	public static int closeTicket(String ticketId) {
+		int result = 0;
+		try {
+
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+
+		}catch(Exception e ){}
+
+
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1/ticketing?user=root&password=");
+
+			stmt = conn.createStatement();
+
+			result = stmt.executeUpdate("UPDATE `tickets` SET `close_date` = CURRENT_TIMESTAMP() WHERE `id` = '"+Integer.parseInt(ticketId.trim())+"';");
+	
+
+		} catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}   
+		return result;
+	}
+	
+	public static int deleteTicket(String ticketId) {
+		int result = 0;
+		try {
+
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+
+		}catch(Exception e ){}
+
+
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1/ticketing?user=root&password=");
+
+			stmt = conn.createStatement();
+
+			result = stmt.executeUpdate("DELETE FROM `tickets` WHERE `id` = '"+Integer.parseInt(ticketId.trim())+"';");
+	
+
+		} catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}   
+		return result;
+	}
+	
+	public static ResultSet viewTickets() {
+
+		try {
+
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+
+		}catch(Exception e ){}
+
+
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1/ticketing?user=root&password=");
+
+			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
+			rs = stmt.executeQuery("SELECT t.id, creation_date, close_date, tech_id, name, description, priority FROM tickets t INNER JOIN users u "
+					+ "ON t.`tech_id` = u.`id`;");
+
+		} catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}    
+		return rs;
+	}
 	
 	public static String[][] getStaff(String type) {
 		ArrayList<String> staffNames = new ArrayList<String>();
@@ -242,6 +346,36 @@ public class DatabaseOperations {
 		String[] result = priorityNames.toArray(new String[priorityNames.size()]);
 
 		return result;
+	}
+
+	public static ResultSet viewTicketDetails(int idToView) {
+		
+		try {
+
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+
+		}catch(Exception e ){}
+
+
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1/ticketing?user=root&password=");
+
+			stmt = conn.createStatement();
+
+			rs = stmt.executeQuery("SELECT t.id, creation_date, close_date, tech_id, name, description, priority FROM tickets t INNER JOIN users u "
+					+ "ON t.`tech_id` = u.`id` WHERE t.id = '"+idToView+"';");
+
+
+		} catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}    
+		return rs;
 	}
 
 
