@@ -7,15 +7,20 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 
 
 public class Login extends JFrame{
 
-	private JTextField userField = null;
-	private JPasswordField passField = null;
+	private JTextField userField;
+	private JPasswordField passField;
 	private String userID;
 
 	gustavolessa.ticketing.controller.Controller controller= new gustavolessa.ticketing.controller.Controller(this);
@@ -27,13 +32,26 @@ public class Login extends JFrame{
 		return new String(passField.getPassword());
 	}
 
-	public Login(){
 
+	public Login(){
+		// set the name of the application menu item
 		setSize(300,300);
-		setVisible(true);
-		this.setLayout(new GridLayout(6,1));
+		this.setLayout(new GridLayout(5,1));
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setTitle("Login");
+		this.setTitle("Ticketing System");
+		this.setLocationRelativeTo(null);	
+		
+		//Add Menu containing File -> Close
+		System.setProperty("apple.laf.useScreenMenuBar", "true");
+	      JMenuBar topBar = new JMenuBar();
+	        this.setJMenuBar(topBar);
+	        JMenu file = new JMenu("File");
+	          topBar.add(file);
+	              JMenuItem close = new JMenuItem("Close");
+	              file.add(close);
+		              close.addActionListener(controller);
+		              close.setActionCommand("close");
+
 
 		JLabel nameLabel = new JLabel("Username");
 		nameLabel.setHorizontalAlignment(JLabel.CENTER);
@@ -60,9 +78,11 @@ public class Login extends JFrame{
 		login.setActionCommand("login");
 		loginPanel.add(login);
 		this.add(loginPanel);
-	
+		
 		validate();
 		repaint();
+		setVisible(true);
+
 	}
 	
 	public static void main(String[] args) {

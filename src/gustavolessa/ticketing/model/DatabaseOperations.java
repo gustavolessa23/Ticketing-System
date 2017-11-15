@@ -143,7 +143,7 @@ public class DatabaseOperations {
 
 			stmt = conn.createStatement();
 
-			result = stmt.executeUpdate("INSERT INTO `tickets` (`priority`, `tech_id`, `description`) VALUES ('"+priority+"', '"+Integer.parseInt(techId.trim())+"', '"+description+"');");
+			result = stmt.executeUpdate("INSERT INTO `tickets` (`priority`, `tech_id`, `description`, `creation_date`) VALUES ('"+priority+"', '"+Integer.parseInt(techId.trim())+"', '"+description+"', UNIX_TIMESTAMP());");
 	
 
 		} catch (SQLException ex) {
@@ -201,8 +201,8 @@ public class DatabaseOperations {
 			conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1/ticketing?user=root&password=");
 
 			stmt = conn.createStatement();
-
-			result = stmt.executeUpdate("UPDATE `tickets` SET `close_date` = CURRENT_TIMESTAMP() WHERE `id` = '"+Integer.parseInt(ticketId.trim())+"';");
+			
+			result = stmt.executeUpdate("UPDATE `tickets` SET `close_date` = UNIX_TIMESTAMP(), `time_taken` = (UNIX_TIMESTAMP() - `creation_date`) WHERE `id` = '"+Integer.parseInt(ticketId.trim())+"';");
 	
 
 		} catch (SQLException ex) {
@@ -243,6 +243,34 @@ public class DatabaseOperations {
 		return result;
 	}
 	
+	public static ResultSet retrieveTickets() {
+
+		try {
+
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+
+		}catch(Exception e ){}
+
+
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			conn = DriverManager.getConnection("jdbc:mysql://127.0.0.1/ticketing?user=root&password=");
+
+			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+
+			rs = stmt.executeQuery("SELECT t.id, FROM_UNIXTIME(creation_date, '%d/%m/%Y %H:%i') AS creation_date, FROM_UNIXTIME(close_date, '%d/%m/%Y %H:%i') AS close_date, tech_id, name, description, priority, time_taken FROM tickets t INNER JOIN users u ON t.`tech_id` = u.`id`;");
+
+		} catch (SQLException ex) {
+			// handle any errors
+			System.out.println("SQLException: " + ex.getMessage());
+			System.out.println("SQLState: " + ex.getSQLState());
+			System.out.println("VendorError: " + ex.getErrorCode());
+		}    
+		return rs;
+	}
+	
 	public static ResultSet viewTickets() {
 
 		try {
@@ -260,8 +288,7 @@ public class DatabaseOperations {
 
 			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
-			rs = stmt.executeQuery("SELECT t.id, creation_date, close_date, tech_id, name, description, priority FROM tickets t INNER JOIN users u "
-					+ "ON t.`tech_id` = u.`id`;");
+			rs = stmt.executeQuery("SELECT t.id, FROM_UNIXTIME(creation_date, '%d/%m/%Y %H:%i') AS creation_date, FROM_UNIXTIME(close_date, '%d/%m/%Y %H:%i') AS close_date, tech_id, name, description, priority, time_taken FROM tickets t INNER JOIN users u ON t.`tech_id` = u.`id`;");
 
 		} catch (SQLException ex) {
 			// handle any errors
@@ -272,9 +299,8 @@ public class DatabaseOperations {
 		return rs;
 	}
 	
-	public static String[][] getStaff(String type) {
-		ArrayList<String> staffNames = new ArrayList<String>();
-		ArrayList<String> staffNumbers = new ArrayList<String>();
+	public static ResultSet getStaff(String type) {
+
 		try {
 
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
@@ -292,25 +318,13 @@ public class DatabaseOperations {
 
 			rs = stmt.executeQuery("SELECT * FROM users WHERE type = '"+type+"'");
 
-
-			while(rs.next()){
-				staffNames.add(rs.getString("name"));
-				staffNumbers.add(rs.getString("id"));
-			} 
-			
-			String[][] result = new String[staffNumbers.size()][2];
-			for (int x = 0; x < staffNumbers.size(); x++) {
-				result[x][0] = (String)staffNumbers.get(x);
-				result[x][1] = (String)staffNames.get(x);
-			}
-			return result;
 		} catch (SQLException ex) {
 			// handle any errors
 			System.out.println("SQLException: " + ex.getMessage());
 			System.out.println("SQLState: " + ex.getSQLState());
 			System.out.println("VendorError: " + ex.getErrorCode());
 		}    
-		return null;
+		return rs;
 	}
 	
 	public static String[] getPriorityNames() {
@@ -343,9 +357,16 @@ public class DatabaseOperations {
 			System.out.println("SQLState: " + ex.getSQLState());
 			System.out.println("VendorError: " + ex.getErrorCode());
 		}   
+		
+		//Populate string holding priority options. It checks according to existing tickets. If there's less than 3 options registered (at least one type missing), the default options will be used
+		//If a new option is inserted and used, it will automatically be included in the list.
+		String[] defaultOptions = {"Normal","Longterm", "Urgent"};
 		String[] result = priorityNames.toArray(new String[priorityNames.size()]);
-
-		return result;
+		if((priorityNames.toArray(new String[priorityNames.size()]).length) < 3) {
+			return defaultOptions;
+		} else {
+			return result;
+		}
 	}
 
 	public static ResultSet viewTicketDetails(int idToView) {
@@ -365,7 +386,7 @@ public class DatabaseOperations {
 
 			stmt = conn.createStatement();
 
-			rs = stmt.executeQuery("SELECT t.id, creation_date, close_date, tech_id, name, description, priority FROM tickets t INNER JOIN users u "
+			rs = stmt.executeQuery("SELECT t.id, FROM_UNIXTIME(creation_date, '%d/%m/%Y %H:%i') AS creation_date, FROM_UNIXTIME(close_date, '%d/%m/%Y %H:%i') AS close_date, tech_id, name, description, priority, time_taken FROM tickets t INNER JOIN users u "
 					+ "ON t.`tech_id` = u.`id` WHERE t.id = '"+idToView+"';");
 
 
