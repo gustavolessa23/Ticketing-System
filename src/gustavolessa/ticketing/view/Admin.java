@@ -125,7 +125,6 @@ public class Admin extends JFrame{
 		addUserPanel.add(addUsernameField);
 		addUserPanel.add(addUserPassLabel);
 		addUserPanel.add(addPasswordField);
-		//TODO Make confirm password word to add users as well
 		addUserPanel.add(addUserConfirmPassLabel);
 		addUserPanel.add(addUserConfirmPasswordField);
 		addUserPanel.add(addUserButton);

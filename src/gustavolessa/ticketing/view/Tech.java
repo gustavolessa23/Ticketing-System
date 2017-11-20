@@ -177,7 +177,7 @@ public class Tech extends JFrame{
             }
         };
         table.setDefaultEditor(Object.class, null);
-    
+        table.setAutoCreateRowSorter(true);
         
         table.getColumnModel().getColumn(0).setPreferredWidth(10);
         table.getColumnModel().getColumn(1).setPreferredWidth(100);
