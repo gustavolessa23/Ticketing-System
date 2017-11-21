@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 
 import javax.swing.BorderFactory;
@@ -14,24 +15,31 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 
 public class Manager extends JFrame{
 
-	String userID;
+	private String userID;
 	gustavolessa.ticketing.controller.Controller controller = new gustavolessa.ticketing.controller.Controller(this);
-	double openCost;
-	double closedCost;
-	double totalCost;
-	int openTickets;
-	int closedTickets;
-	int totalTickets;
-	int costPerTicket = 50;
+	private double openCost;
+	private double closedCost;
+	private double totalCost;
+	private int openTickets;
+	private int closedTickets;
+	private int totalTickets;
+	private int costPerTicket = 50;
 	BarChart chart;
 	
 	DecimalFormat decim = new DecimalFormat("#.00");
+	
+	public String getUserID() {
+		return userID;
+	}
 
 	public Manager(String userID){
 		super("Manager Dashboard");
@@ -43,15 +51,15 @@ public class Manager extends JFrame{
 		updateTicketStats();
 
 		//Add Menu containing File -> Close
-				System.setProperty("apple.laf.useScreenMenuBar", "true");
-			      JMenuBar topBar = new JMenuBar();
-			        this.setJMenuBar(topBar);
-			        JMenu file = new JMenu("File");
-			          topBar.add(file);
-			              JMenuItem close = new JMenuItem("Close");
-			              file.add(close);
-				              close.addActionListener(controller);
-				              close.setActionCommand("close");
+		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		JMenuBar topBar = new JMenuBar();
+		this.setJMenuBar(topBar);
+		JMenu file = new JMenu("File");
+		topBar.add(file);
+		JMenuItem close = new JMenuItem("Close");
+		file.add(close);
+		close.addActionListener(controller);
+		close.setActionCommand("close");
 				              
 		//Create center panel and set layout manager
 		JPanel centerPanel = new JPanel(){
@@ -62,7 +70,7 @@ public class Manager extends JFrame{
 		};
 		centerPanel.setLayout(new GridLayout(1,2));
 
-		//Create left subpanel, set layout manager and border.
+		//Create left sub-panel, set layout manager and border.
 		JPanel overviewPanel = new JPanel() {
 			@Override
 			public Dimension getPreferredSize() {
@@ -71,7 +79,7 @@ public class Manager extends JFrame{
 		};
 		overviewPanel.setLayout(new GridLayout(2,1));
 
-		//Create top left subpanel, its border and its layout manager
+		//Create top left sub-panel, its border and its layout manager
 		JPanel ticketsPanel = new JPanel() {
 			@Override
 			public Dimension getPreferredSize() {
@@ -79,11 +87,11 @@ public class Manager extends JFrame{
 			}
 		};
 		ticketsPanel.setLayout(new GridLayout(3,2));
-		TitledBorder ticketsBorder = BorderFactory.createTitledBorder("Tickets");
+		TitledBorder ticketsBorder = BorderFactory.createTitledBorder("Overview (tickets/cost)");
 		ticketsBorder.setTitleJustification(TitledBorder.CENTER);
 		ticketsPanel.setBorder(ticketsBorder);
 		
-		//Create tickets panel specifics
+		//Create tickets panel labels
 		JLabel openTicketsLabel = new JLabel("Open:");
 		openTicketsLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		JLabel closedTicketsLabel = new JLabel("Closed:");
@@ -91,38 +99,13 @@ public class Manager extends JFrame{
 		JLabel totalTicketsLabel = new JLabel("Total:");
 		totalTicketsLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-		JLabel openTicketsField = new JLabel(String.valueOf(openTickets));
+		//Create tickets panel fields (as JLabels)
+		JLabel openTicketsField = new JLabel(String.valueOf(openTickets)+" tickets / € "+decim.format(openCost));
 		openTicketsField.setHorizontalAlignment(SwingConstants.CENTER);
-		JLabel closedTicketsField = new JLabel(String.valueOf(closedTickets));
+		JLabel closedTicketsField = new JLabel(String.valueOf(closedTickets)+" tickets / € "+decim.format(closedCost));
 		closedTicketsField.setHorizontalAlignment(SwingConstants.CENTER);
-		JLabel totalTicketsField = new JLabel(String.valueOf(totalTickets));
+		JLabel totalTicketsField = new JLabel(String.valueOf(totalTickets)+" tickets / € "+decim.format(totalCost));
 		totalTicketsField.setHorizontalAlignment(SwingConstants.CENTER);
-		
-		//Create cost panel specifics
-		JLabel openCostLabel = new JLabel("Open tickets:");
-		openCostLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		JLabel closedCostLabel = new JLabel("Closed tickets:");
-		closedCostLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		JLabel totalCostLabel = new JLabel("Total cost:");
-		totalCostLabel.setHorizontalAlignment(SwingConstants.CENTER);
-		JLabel openCostField = new JLabel("€ "+decim.format(openCost));
-		openCostField.setHorizontalAlignment(SwingConstants.CENTER);
-		JLabel closedCostField = new JLabel("€ "+decim.format(closedCost));
-		closedCostField.setHorizontalAlignment(SwingConstants.CENTER);
-		JLabel totalCostField = new JLabel("€ "+decim.format(totalCost));
-		totalCostField.setHorizontalAlignment(SwingConstants.CENTER);
-		
-		//Create bottom left subpanel, its border and its layout manager
-		JPanel costPanel = new JPanel() {
-			@Override
-			public Dimension getPreferredSize() {
-				return new Dimension(250, 150);
-			}
-		};
-		costPanel.setLayout(new GridLayout(3,2));
-		TitledBorder costBorder = BorderFactory.createTitledBorder("Cost");
-		costBorder.setTitleJustification(TitledBorder.CENTER);
-		costPanel.setBorder(costBorder);
 		
 		//Create right panel (graph) and its border
 		JPanel graphPanel = new JPanel() {
@@ -140,42 +123,66 @@ public class Manager extends JFrame{
 		JPanel bottomPanel = new JPanel();
 		JButton refresh = new JButton("Refresh");
 		refresh.addActionListener(controller);
-		refresh.setActionCommand("managerRefresh");
+		refresh.setActionCommand("refreshManager");
 		JButton logout = new JButton("Logout");
 		logout.addActionListener(controller);
 		logout.setActionCommand("managerLogout");
 		
 		//Generate bar graph
-
 		chart = new BarChart(graphValues(), graphLabels(), graphColors()){
 			@Override
 			public Dimension getPreferredSize() {
 				return new Dimension(300, 280);
 			}
 		};
-
-		//Add Items do Panels
+		
+		//Create panel for tech table (tickets assigned to each tech support staff member)
+		JPanel techTicketsPanel = new JPanel() {
+			@Override
+			public Dimension getPreferredSize() {
+				return new Dimension(250, 150);
+			}
+		};
+		TitledBorder techTicketsBorder = BorderFactory.createTitledBorder("Number of tickets for each Tech staff");
+		techTicketsBorder.setTitleJustification(TitledBorder.CENTER);
+		techTicketsPanel.setBorder(techTicketsBorder);
+		techTicketsPanel.setLayout(new GridLayout(1,1));
+		
+		//Create table to show tickets assigned to each tech support staff member
+		JTable techTicketsTable = displayTechTicketsTable();
+		techTicketsTable.setDefaultEditor(Object.class, null);
+		techTicketsTable.setAutoCreateRowSorter(true);
+		((DefaultTableCellRenderer)techTicketsTable.getTableHeader().getDefaultRenderer())
+	    .setHorizontalAlignment(JLabel.CENTER);
+		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+		centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+		techTicketsTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+		techTicketsTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
+		techTicketsTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
+		techTicketsTable.getColumnModel().getColumn(0).setPreferredWidth(10);
+		techTicketsTable.getColumnModel().getColumn(1).setPreferredWidth(50);
+		techTicketsTable.getColumnModel().getColumn(2).setPreferredWidth(30);
+		JScrollPane techTicketsScroll = new JScrollPane(techTicketsTable);
+		
+		//Add Items to Panels
 		ticketsPanel.add(openTicketsLabel);
 		ticketsPanel.add(openTicketsField);
 		ticketsPanel.add(closedTicketsLabel);
 		ticketsPanel.add(closedTicketsField);
 		ticketsPanel.add(totalTicketsLabel);
 		ticketsPanel.add(totalTicketsField);
-		costPanel.add(openCostLabel);
-		costPanel.add(openCostField);
-		costPanel.add(closedCostLabel);
-		costPanel.add(closedCostField);
-		costPanel.add(totalCostLabel);
-		costPanel.add(totalCostField);
-		
-		overviewPanel.add(ticketsPanel);
-		overviewPanel.add(costPanel);
 		graphPanel.add(chart);
-		centerPanel.add(overviewPanel);
-		centerPanel.add(graphPanel);
 		bottomPanel.add(refresh);
 		bottomPanel.add(logout);
-
+		techTicketsPanel.add(techTicketsScroll);
+		
+		//Add panels to panels
+		overviewPanel.add(ticketsPanel);
+		centerPanel.add(overviewPanel);
+		centerPanel.add(graphPanel);
+		overviewPanel.add(techTicketsPanel);
+		
+		//Add panels to JFrame
 		this.add(centerPanel, BorderLayout.CENTER);
 		this.add(bottomPanel, BorderLayout.SOUTH);
 
@@ -184,13 +191,13 @@ public class Manager extends JFrame{
 		setVisible(true);
 	}
 	
-	public void updateDisplayedData() {
-		updateTicketStats();
-		this.dispose();
-		new Manager(userID);
-		revalidate();
-		repaint();
+	public JTable displayTechTicketsTable() {
+		String[][] data = controller.getTicketsPerTech();
+		String [] columns = {"Tech ID", "Username","Tickets"};
+		JTable table = new JTable (data, columns);
+		return table;
 	}
+	
 	
 	public void updateTicketStats() {
 		int[] stats = controller.retrieveTicketStats();

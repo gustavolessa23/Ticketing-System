@@ -17,7 +17,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 
-public class Login extends JFrame{
+public class Login extends JFrame {
 
 	private JTextField userField;
 	private JPasswordField passField;
@@ -80,6 +80,7 @@ public class Login extends JFrame{
 		loginPanel.add(login);
 		this.add(loginPanel);
 		
+		getRootPane().setDefaultButton(login);
 		validate();
 		repaint();
 		setVisible(true);

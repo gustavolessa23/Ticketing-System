@@ -30,7 +30,6 @@ import javax.swing.border.TitledBorder;
 
 import org.apache.commons.lang3.StringUtils;
 
-
 public class Tech extends JFrame{
 	
 	//Set controller
@@ -41,19 +40,18 @@ public class Tech extends JFrame{
 	private JComboBox techEmployee;
 	private String[][] techStaff;
 	private String[] techNames;
-
 	
 	public Tech(String userID){
 		//Add Menu containing File -> Close
-				System.setProperty("apple.laf.useScreenMenuBar", "true");
-			      JMenuBar topBar = new JMenuBar();
-			        this.setJMenuBar(topBar);
-			        JMenu file = new JMenu("File");
-			          topBar.add(file);
-			              JMenuItem close = new JMenuItem("Close");
-			              file.add(close);
-				              close.addActionListener(controller);
-				              close.setActionCommand("close");
+		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		JMenuBar topBar = new JMenuBar();
+		this.setJMenuBar(topBar);
+		JMenu file = new JMenu("File");
+		topBar.add(file);
+		JMenuItem close = new JMenuItem("Close");
+		file.add(close);
+		close.addActionListener(controller);
+		close.setActionCommand("close");
 				              
 		//Initialize controller
 		controller = new gustavolessa.ticketing.controller.Controller(this);
@@ -76,7 +74,6 @@ public class Tech extends JFrame{
 		setTitle("Tech Support Menu");
 		//TODO change layout for v2
 		this.setLocationRelativeTo(null);
-
 
 		//Create panel and button to Logout
 		JPanel logoutPanel = new JPanel();
@@ -156,7 +153,7 @@ public class Tech extends JFrame{
 
 	//Method to display the View Tickets Window
 	public void viewTicketsWindow(String[][] data) {
-		//TODO add button to refresh
+		//TODO add button to refresh (PROBLEM AFTER DELETING TICKET! CHANGE LAYOUT)
 		
         //Set column names
         String[] columnNames = {"ID", "Creation Date", "Closure Date", "Priority", "Description", "Total ticket time"};
@@ -169,7 +166,7 @@ public class Tech extends JFrame{
             }
         };
         
-        //Table non editable
+        //Table set with preferred size, set as non editable, with sorter and preferred width for columns.
         JTable table = new JTable(data, columnNames){
             @Override
             public Dimension getPreferredSize() {
@@ -178,13 +175,13 @@ public class Tech extends JFrame{
         };
         table.setDefaultEditor(Object.class, null);
         table.setAutoCreateRowSorter(true);
-        
         table.getColumnModel().getColumn(0).setPreferredWidth(10);
         table.getColumnModel().getColumn(1).setPreferredWidth(100);
         table.getColumnModel().getColumn(2).setPreferredWidth(100);
         table.getColumnModel().getColumn(3).setPreferredWidth(50);
         table.getColumnModel().getColumn(4).setPreferredWidth(80);
         pack();
+        
         //Add Mouse Listener to table, that detects double clicks on rows.
         table.addMouseListener(new MouseAdapter() {
         	public void mouseClicked(MouseEvent e) {
@@ -213,10 +210,12 @@ public class Tech extends JFrame{
         		JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result == JOptionPane.OK_OPTION) {
         		int row = table.getSelectedRow();
-    			int idToView = Integer.parseInt(data[row][0]);
-    			controller.viewTicket(idToView);
+        		if(row >= 0) {
+        			int idToView = Integer.parseInt(data[row][0]);
+        			controller.viewTicket(idToView);
+        		}
         } else {
-        	System.out.println("Cancelled");
+        		System.out.println("Cancelled");
         }
     }
 
@@ -225,7 +224,6 @@ public class Tech extends JFrame{
 		
 		//Set local variables
 		String ticketId = null;
-	//	String techId = null;
 		String techName = null;
 		String creationDate = null;
 		String closeDate = null;
@@ -237,7 +235,6 @@ public class Tech extends JFrame{
 		try {
 			while(rs.next()){
 				ticketId = rs.getString("id");
-			//	techId = rs.getString("tech_id");
 				techName = rs.getString("name");
 				creationDate = rs.getString("creation_date");
 				closeDate = rs.getString("close_date");
@@ -252,51 +249,18 @@ public class Tech extends JFrame{
 		//Create items to display info
 		JLabel labelId = new JLabel("ID: ");
 		JLabel fieldId = new JLabel("\t\t"+ticketId);
-	
 		JLabel labelTechStaff = new JLabel("Assigned to: ");
-
 		JLabel labelCreated = new JLabel("Date created: ");
 		JLabel fieldCreated = new JLabel("\t\t"+creationDate);
-
-		
 		JLabel labelClosed = new JLabel("Date closed: ");
         if(StringUtils.isBlank(closeDate)) {
       	  	closeDate = "Ticket open";
         }
 		JLabel fieldClosed = new JLabel("\t\t"+closeDate);
-		
-		JLabel labelTimeTaken = new JLabel("Total ticket time: ");
-		
-		String timeTaken = "";
-		
-        if(StringUtils.isBlank(timeRetrieved)) {
-      	  	timeTaken = "Ticket open";
-        } else {
-			long seconds = Long.parseLong(timeRetrieved);   	  	
-			long day = TimeUnit.SECONDS.toDays(seconds);        
-			long hours = TimeUnit.SECONDS.toHours(seconds) - (day *24);
-			long minute = TimeUnit.SECONDS.toMinutes(seconds) - (TimeUnit.SECONDS.toHours(seconds)* 60);
-			long second = TimeUnit.SECONDS.toSeconds(seconds) - (TimeUnit.SECONDS.toMinutes(seconds) *60);
-			if(day > 0) {
-          	  	timeTaken = day+"d "+hours+"h "+minute+"min";
-            } else {
-          	  	if(hours > 0) {
-          	  		timeTaken = hours+"h "+minute+"min";
-          	  	} else {
-          	  		if(minute > 0) {
-          	  			timeTaken = minute+"min";
-          	  		} else {
-          	  			timeTaken = second+" seconds";
-          	  		}
-          	  	}
-            }
-        }
-		
-		JLabel fieldTimeTaken = new JLabel("\t\t"+timeTaken);
-		
+		JLabel labelTimeTaken = new JLabel("Total ticket time: ");	
+		String timeTaken = formatIntervalFromUnix(timeRetrieved);
+		JLabel fieldTimeTaken = new JLabel("\t\t"+timeTaken);	
 		JLabel labelPriority = new JLabel("Priority: ");
-	
-		
 		JTextArea fieldDescription = new JTextArea(5,20);
 		fieldDescription.setLineWrap(true);
 		fieldDescription.setWrapStyleWord(true);
@@ -314,34 +278,27 @@ public class Tech extends JFrame{
 		JPanel subPanel = new JPanel();
 		subPanel.setLayout(new GridLayout(6,2));
 		
-		
 		JPanel descriptionPanel = new JPanel();
 		descriptionPanel.setLayout(new GridLayout(1,1));
 		TitledBorder descriptionBorder = BorderFactory.createTitledBorder("Description");
 		descriptionBorder.setTitleJustification(TitledBorder.CENTER);
 		descriptionPanel.setBorder(descriptionBorder);
 
-		//Add Items to subpanels
+		//Add Items to sub-panels
 		subPanel.add(labelId);
 		subPanel.add(fieldId);
-
 		subPanel.add(labelCreated);
 		subPanel.add(fieldCreated);
-		
 		subPanel.add(labelClosed);
 		subPanel.add(fieldClosed);
-		
 		subPanel.add(labelTimeTaken);
 		subPanel.add(fieldTimeTaken);
-		
 		subPanel.add(labelTechStaff);
 		techEmployee.setSelectedItem(techName);
 		subPanel.add(techEmployee);
-
 		subPanel.add(labelPriority);
 		priority.setSelectedItem(ticketPriority);
 		subPanel.add(priority);
-		
 		descriptionPanel.add(fieldDescription);
 		
 		//Add items to main panel
@@ -367,51 +324,82 @@ public class Tech extends JFrame{
 	    	System.out.println("cancel");
 	    	break;
 	    case 1:
-	    	System.out.println("delete");
-	    	int n = JOptionPane.showConfirmDialog(this, "Would you like to delete this ticket?", "Confirmation", JOptionPane.YES_NO_OPTION);
-		if (n==0) {
-		  int deleteResponse = controller.deleteTicket(ticketId);
-		  if(deleteResponse > 0) {
-		 	JOptionPane.showMessageDialog(this, "Ticket deleted successfully!");
-		  } else {
-			JOptionPane.showMessageDialog(this, "Ticket could not be deleted!");
-	    	}
-		}
-		break;
+		    	System.out.println("delete");
+		    	int n = JOptionPane.showConfirmDialog(this, "Would you like to delete this ticket?", "Confirmation", JOptionPane.YES_NO_OPTION);
+			if (n==0) {
+			  int deleteResponse = controller.deleteTicket(ticketId);
+			  if(deleteResponse > 0) {
+			 	JOptionPane.showMessageDialog(this, "Ticket deleted successfully!");
+			  } else {
+				JOptionPane.showMessageDialog(this, "Ticket could not be deleted!");
+			  }
+			}
+			break;
 	      
 	    case 2:
-	    	System.out.println("close");
-	    	
-	    	int x = JOptionPane.showConfirmDialog(this, "Would you like to close this ticket?", "Confirmation", JOptionPane.YES_NO_OPTION);
-			if (x==0) {
-		    	int closeResponse = controller.closeTicket(ticketId);
-		    	if(closeResponse > 0) {
-		    		JOptionPane.showMessageDialog(this, "Ticket closed successfully!");
-		    	} else {
-		    		JOptionPane.showMessageDialog(this, "Ticket could not be closed!");
-		    	}
-			}
-	    	
-	    	break;
+		    	System.out.println("close");
+		    	int x = JOptionPane.showConfirmDialog(this, "Would you like to close this ticket?", "Confirmation", JOptionPane.YES_NO_OPTION);
+				if (x==0) {
+			    	int closeResponse = controller.closeTicket(ticketId);
+			    	if(closeResponse > 0) {
+			    		JOptionPane.showMessageDialog(this, "Ticket closed successfully!");
+			    	} else {
+			    		JOptionPane.showMessageDialog(this, "Ticket could not be closed!");
+			    	}
+				}
+		    	break;
+		    	
 	    case 3:
-	    	System.out.println("update");
-	    	String techNumber = null;
-	    	for(int i = 0; i < techStaff.length; i++) {
-	    		if(techStaff[i][1].equals(techName)) {
-	    			techNumber = techStaff[i][0];
-	    		}
-	    	}
-	    	int updateResponse = controller.updateTicket(ticketId, techNumber, (String)priority.getSelectedItem(), fieldDescription.getText());
-	    	if(updateResponse > 0) {
-	    		JOptionPane.showMessageDialog(this, "Ticket updated successfully!");
-	    	} else {
-	    		JOptionPane.showMessageDialog(this, "Ticket could not be updated!");
-	    	}
-	    	break;
+		    	System.out.println("update");
+		    	String techNumber = null;
+		    	for(int i = 0; i < techStaff.length; i++) {
+		    		if(techStaff[i][1].equals(techName)) {
+		    			techNumber = techStaff[i][0];
+		    		}
+		    	}
+		    	int updateResponse = controller.updateTicket(ticketId, techNumber, (String)priority.getSelectedItem(), fieldDescription.getText());
+		    	if(updateResponse > 0) {
+		    		JOptionPane.showMessageDialog(this, "Ticket updated successfully!");
+		    	} else {
+		    		JOptionPane.showMessageDialog(this, "Ticket could not be updated!");
+		    	}
+		    	break;
+		    	
 	    default:
-	    	System.out.println("erro");
-	    	break;
-
+		    	System.out.println("erro");
+		    	break;
 	    }
+	}
+	
+	/**Method to convert from Unix (Epoch) time to written interval, in hours, minutes and seconds.
+	 * 
+	 * @param String timeRetrieved
+	 * @return String timeTaken
+	 */
+	public String formatIntervalFromUnix(String timeRetrieved) {	
+		String timeTaken= "";
+		if(StringUtils.isBlank(timeRetrieved)) {
+      	  	timeTaken = "Ticket open";
+        } else {
+			long seconds = Long.parseLong(timeRetrieved);   	  	
+			long day = TimeUnit.SECONDS.toDays(seconds);        
+			long hours = TimeUnit.SECONDS.toHours(seconds) - (day *24);
+			long minute = TimeUnit.SECONDS.toMinutes(seconds) - (TimeUnit.SECONDS.toHours(seconds)* 60);
+			long second = TimeUnit.SECONDS.toSeconds(seconds) - (TimeUnit.SECONDS.toMinutes(seconds) *60);
+			if(day > 0) {
+          	  	timeTaken = day+"d "+hours+"h "+minute+"min";
+            } else {
+          	  	if(hours > 0) {
+          	  		timeTaken = hours+"h "+minute+"min";
+          	  	} else {
+          	  		if(minute > 0) {
+          	  			timeTaken = minute+"min";
+          	  		} else {
+          	  			timeTaken = second+" seconds";
+          	  		}
+          	  	}
+            }
+        }
+		return timeTaken;
 	}
 }

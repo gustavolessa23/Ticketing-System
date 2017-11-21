@@ -112,19 +112,34 @@ public class Controller implements ActionListener, WindowListener {
 			String userType = admin.getNewUserType();
 			String result = gustavolessa.ticketing.model.DatabaseOperations.registerNewUser(username, password, userType);	
 			JOptionPane.showMessageDialog(admin, result);
+			refreshAdmin();
 		} else {
 			JOptionPane.showMessageDialog(admin, "Passwords don't match!");
 		}
 	}
+	public void refreshAdmin() {
+		String id = admin.getLoggedUserId();
+		admin.dispose();
+		new gustavolessa.ticketing.view.Admin(id);
+	}
 	
-	public void changePass() {
+	public void refreshManager() {
+		String id = manager.getUserID();
+		manager.updateTicketStats();
+		manager.dispose();
+		new gustavolessa.ticketing.view.Manager(id);
+	}
+	
+	public void updateUserInfo() {
+		String id = admin.getUpdateInfoUserId();
 		String username = admin.getChangePassUsernameField();
 		String password = admin.getChangePassPasswordField();
 		String confirmPassword = admin.getChangePassConfirmPasswordField();
 		if(password.equals(confirmPassword)) {
 			String userType = admin.getChangePassUserType();
-			String result = gustavolessa.ticketing.model.DatabaseOperations.changePass(username, password, userType);	
+			String result = gustavolessa.ticketing.model.DatabaseOperations.updateUserInfo(id, username, password, userType);	
 			JOptionPane.showMessageDialog(admin, result);
+			refreshAdmin();
 		} else {
 			JOptionPane.showMessageDialog(admin, "Passwords don't match!");
 		}
@@ -182,7 +197,10 @@ public class Controller implements ActionListener, WindowListener {
 		return result;
 	}
 	
-	//Method to retrieve from Database a 2d Array containing all Tickets info and return int[] of number of open, closed and total tickets.
+	/**
+	 * Method to retrieve from Database a 2d Array containing all Tickets info and return int[] of number of open, closed and total tickets.
+	 * @return int[]
+	 */
 	public int[] retrieveTicketStats(){
 		ResultSet rs = gustavolessa.ticketing.model.DatabaseOperations.viewTickets();
 		int total = 0;
@@ -208,6 +226,7 @@ public class Controller implements ActionListener, WindowListener {
 
 		return result;
 	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getActionCommand().equals("login")){
@@ -217,7 +236,7 @@ public class Controller implements ActionListener, WindowListener {
 			addUser();
 			
 		} else if(e.getActionCommand().equals("changePassButton")){
-			changePass();
+			updateUserInfo();
 		} else if(e.getActionCommand().equals("adminLogout")){
 			logout("Admin");
 		} else if(e.getActionCommand().equals("techLogout")){
@@ -232,17 +251,21 @@ public class Controller implements ActionListener, WindowListener {
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
-		} else if(e.getActionCommand().equals("managerRefresh")){
-			manager.updateDisplayedData();
 		} else if(e.getActionCommand().equals("close")){
 			System.exit(0);
+		} else if(e.getActionCommand().equals("refreshAdmin")){
+			refreshAdmin();
+		} else if(e.getActionCommand().equals("refreshManager")){
+			refreshManager();
 		}
-
 	}
 	
-	
-
-	private String[][] getTicketsInfo() throws SQLException {
+	/**
+	 * Method to retrieve all tickets' info as a String[][]
+	 * @return String [][]
+	 * @throws SQLException
+	 */
+	public String[][] getTicketsInfo() throws SQLException {
 		ResultSet rs = gustavolessa.ticketing.model.DatabaseOperations.viewTickets();
 		ResultSetMetaData rsmd;
 		String[][] data;
@@ -252,8 +275,6 @@ public class Controller implements ActionListener, WindowListener {
 		    rs.beforeFirst();
 		}
 		rsmd = rs.getMetaData();
-
-		
 		int maxColumn = rsmd.getColumnCount();
 		//Create 2D array to store and display data
 		if(maxColumn <=0){
@@ -265,53 +286,103 @@ public class Controller implements ActionListener, WindowListener {
         // loop over results       
 		int rowCounter = 0;
 		while(rs.next()){
-          
           String id = rs.getString("id");
           data[rowCounter][0] = id;
-          
           String creationDate = rs.getString("creation_date");
           data[rowCounter][1] = creationDate;
-          
           String closeDate = rs.getString("close_date");   
-
-          data[rowCounter][2] = closeDate;
-         
-          
+          data[rowCounter][2] = closeDate;                   
           String priority = rs.getString("priority");
-          data[rowCounter][3] = priority; 
-          
+          data[rowCounter][3] = priority;          
           String description = rs.getString("description");
-          data[rowCounter][4] = description;
-          
+          data[rowCounter][4] = description;         
           String timeRetrieved = rs.getString("time_taken");
+          data[rowCounter][5] = tech.formatIntervalFromUnix(timeRetrieved);   
+          rowCounter++;
+		}
+		return data;	
+	}
 
-          if(StringUtils.isBlank(timeRetrieved)) {
-        	  	data[rowCounter][5] = "Ticket open";
-          } else {
-        	  	long seconds = Long.parseLong(timeRetrieved);
-        	  	String timeTaken = "";
-          	long day = TimeUnit.SECONDS.toDays(seconds);        
-          	long hours = TimeUnit.SECONDS.toHours(seconds) - (day *24);
-          	long minute = TimeUnit.SECONDS.toMinutes(seconds) - (TimeUnit.SECONDS.toHours(seconds)* 60);
-          	long second = TimeUnit.SECONDS.toSeconds(seconds) - (TimeUnit.SECONDS.toMinutes(seconds) *60);
-              if(day > 0) {
-            	  	timeTaken = day+"d "+hours+"h "+minute+"min";
-              } else {
-            	  	if(hours > 0) {
-            	  		timeTaken = hours+"h "+minute+"min";
-            	  	} else {
-            	  		if(minute > 0) {
-            	  			timeTaken = minute+"min";
-            	  		} else {
-            	  			timeTaken = second+" seconds";
-            	  		}
-            	  	}
-              }
-              data[rowCounter][5] = timeTaken;
-          }
-          
-          rowCounter++;  
-        }
+	
+	/**
+	 * Method to retrieve amount of tickets designated to each tech ID, including user ID and name;
+	 * @return String[][]
+	 * @throws SQLException
+	 */
+	public String[][] getTicketsPerTech(){
+		ResultSet rs = gustavolessa.ticketing.model.DatabaseOperations.viewTicketsPerTech();
+		String[][] data;
+		int maxRow = 5;
+		try {
+			if (rs.last()) {
+			    maxRow = rs.getRow();
+			    rs.beforeFirst();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		data = new String[maxRow][3];
+
+        // loop over results       
+		int rowCounter = 0;
+		try {
+			while(rs.next()){
+			  String tech_id = rs.getString("id");
+			  data[rowCounter][0] = tech_id;
+			  String name = rs.getString("name");
+			  data[rowCounter][1] = name;
+			  String tickets = rs.getString("tickets");   
+			  data[rowCounter][2] = tickets;
+			  rowCounter++;  
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return data;	
+	}
+	
+	/**
+	 * Method to return all users info as a String[][]
+	 * @return String[][]
+	 * @throws SQLException
+	 */
+	public String[][] getUsersInfo() throws SQLException {
+		ResultSet rs = gustavolessa.ticketing.model.DatabaseOperations.viewUsers();
+		ResultSetMetaData rsmd;
+		String[][] data;
+		int maxRow = 100;
+		if (rs.last()) {
+			maxRow = rs.getRow();
+			rs.beforeFirst();
+		}
+		rsmd = rs.getMetaData();
+
+		int maxColumn = rsmd.getColumnCount();
+		//Create 2D array to store and display data
+		if(maxColumn <=0){
+			data = new String[100][100];
+		} else {
+			data = new String[maxRow][maxColumn];
+		}
+
+		// loop over results       
+		int rowCounter = 0;
+		while(rs.next()){
+
+			String id = rs.getString("id");
+			data[rowCounter][0] = id;
+
+			String name = rs.getString("name");
+			data[rowCounter][1] = name;
+
+			String password = rs.getString("password");   
+			data[rowCounter][2] = password;
+
+			String type = rs.getString("type");
+			data[rowCounter][3] = type; 
+
+			rowCounter++;  
+		}
 		return data;	
 	}
 
@@ -341,5 +412,11 @@ public class Controller implements ActionListener, WindowListener {
 
 	@Override
 	public void windowDeactivated(WindowEvent e) {
+	}
+
+	
+	public void viewUser(int idToView) {
+		// TODO create this method
+		
 	}
 }
