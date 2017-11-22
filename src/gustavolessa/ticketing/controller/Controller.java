@@ -4,9 +4,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -70,9 +73,22 @@ public class Controller implements ActionListener, WindowListener {
 	public void login() {
 		String username = login.getUserField();
 		String password = login.getPassField();
-		String[] result = gustavolessa.ticketing.model.DatabaseOperations.login(username, password);
-		String userID = result[0];
-		String userType = result[1];
+		String userID;
+		String userType;
+		String[] result = new String[2];
+		ResultSet rs = gustavolessa.ticketing.model.DatabaseOperations.login(username, password);
+		try {
+			while(rs.next()){
+				userID = rs.getString("id");
+				userType = rs.getString("type");
+				result[0] = userID;
+				result[1] = userType;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} 
+		userID = result[0];
+		userType = result[1];
 		if(userID == null || userType == null) {
 			JOptionPane.showMessageDialog(login, "Login details don't match!");
 		} else {
@@ -108,13 +124,23 @@ public class Controller implements ActionListener, WindowListener {
 		String username = admin.getAddUsernameField();
 		String password = admin.getAddPasswordField();
 		String confirmPassword = admin.getAddUserConfirmPasswordField();
-		if(password.equals(confirmPassword)) {
-			String userType = admin.getNewUserType();
-			String result = gustavolessa.ticketing.model.DatabaseOperations.registerNewUser(username, password, userType);	
-			JOptionPane.showMessageDialog(admin, result);
-			refreshAdmin();
+		String userType = admin.getNewUserType();
+		String result="";
+		if(StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password) && StringUtils.isNotBlank(userType)) {
+			if(password.equals(confirmPassword)) {
+				int retrieved = gustavolessa.ticketing.model.DatabaseOperations.registerNewUser(username, password, userType);	
+				if (retrieved>0) {
+					result = "User Registered!";
+	            } else {
+	            		result = "User could not be registered!";
+	            }
+				JOptionPane.showMessageDialog(admin, result);
+				refreshAdmin();
+			} else {
+				JOptionPane.showMessageDialog(admin, "Passwords don't match!");
+			}			
 		} else {
-			JOptionPane.showMessageDialog(admin, "Passwords don't match!");
+			JOptionPane.showMessageDialog(admin, "All fields are required.");
 		}
 	}
 	public void refreshAdmin() {
@@ -130,18 +156,34 @@ public class Controller implements ActionListener, WindowListener {
 		new gustavolessa.ticketing.view.Manager(id);
 	}
 	
+	public void refreshTech() {
+		String id = tech.getUserId();
+		tech.dispose();
+		new gustavolessa.ticketing.view.Tech(id);
+	}
+	
 	public void updateUserInfo() {
 		String id = admin.getUpdateInfoUserId();
 		String username = admin.getChangePassUsernameField();
 		String password = admin.getChangePassPasswordField();
 		String confirmPassword = admin.getChangePassConfirmPasswordField();
-		if(password.equals(confirmPassword)) {
-			String userType = admin.getChangePassUserType();
-			String result = gustavolessa.ticketing.model.DatabaseOperations.updateUserInfo(id, username, password, userType);	
-			JOptionPane.showMessageDialog(admin, result);
-			refreshAdmin();
+		String result="";
+		if(StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password) && StringUtils.isNotBlank(id)) {
+			if(password.equals(confirmPassword)) {
+				String userType = admin.getChangePassUserType();
+				int confirm = gustavolessa.ticketing.model.DatabaseOperations.updateUserInfo(id, username, password, userType);
+				if (confirm > 0 ) {
+					result = username+"'s info updated successfully!";
+	            } else {
+	            		result = "Info could not be updated!";
+	            }
+				JOptionPane.showMessageDialog(admin, result);
+				refreshAdmin();
+			} else {
+				JOptionPane.showMessageDialog(admin, "Passwords don't match!");
+			}
 		} else {
-			JOptionPane.showMessageDialog(admin, "Passwords don't match!");
+			JOptionPane.showMessageDialog(admin, "All fields are required.");
 		}
 	}
 	
@@ -168,8 +210,24 @@ public class Controller implements ActionListener, WindowListener {
 	}
 	
 	public String[] getPriorityNames() {
-		String [] result = gustavolessa.ticketing.model.DatabaseOperations.getPriorityNames();
-		return result;
+		ArrayList<String> priorityNames = new ArrayList<String>();
+		ResultSet rs = gustavolessa.ticketing.model.DatabaseOperations.getPriorityNames();
+		try {
+			while(rs.next()){
+				priorityNames.add(rs.getString("priority"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} 
+		//Populate string holding priority options. It checks according to existing tickets. If there's less than 3 options registered (at least one type missing), the default options will be used
+		//If a new option is inserted and used, it will automatically be included in the list.
+		String[] defaultOptions = {"Normal","Longterm", "Urgent"};
+		String[] result = priorityNames.toArray(new String[priorityNames.size()]);
+		if((priorityNames.toArray(new String[priorityNames.size()]).length) < 3) {
+			return defaultOptions;
+		} else {
+			return result;
+		}
 	}
 	
 	public int addTicket(String priority, String techId, String description) {
@@ -177,24 +235,51 @@ public class Controller implements ActionListener, WindowListener {
 		return result;
 	}
 
-	public void viewTicket(int idToView) {
-		ResultSet result = gustavolessa.ticketing.model.DatabaseOperations.viewTicketDetails(idToView);
-		tech.viewTicketDetails(result);
+	public void viewTicket(String data) {
+		if(StringUtils.isNotBlank(data)) {
+			ResultSet result = gustavolessa.ticketing.model.DatabaseOperations.viewTicketDetails(data);
+			tech.viewTicketDetails(result);
+		}
 	}
 	
-	public int updateTicket(String ticketId, String techNumber, String priority, String description) {
-		int result = gustavolessa.ticketing.model.DatabaseOperations.updateTicket(ticketId, techNumber, priority, description);
-		return result;
-	}
-	
-	public int deleteTicket(String ticketId) {
-		int result = gustavolessa.ticketing.model.DatabaseOperations.deleteTicket(ticketId);
-		return result;
+	public void updateTicket(String ticketId, String techNumber, String priority, String description) {
+		int updateResponse = gustavolessa.ticketing.model.DatabaseOperations.updateTicket(ticketId, techNumber, priority, description);
+	    	if(updateResponse > 0) {
+	    		JOptionPane.showMessageDialog(tech, "Ticket updated successfully!");
+	    		refreshTech();
+	    	} else {
+	    		JOptionPane.showMessageDialog(tech, "Ticket could not be updated!");
+	    	}
 	}
 
-	public int closeTicket(String ticketId) {
-		int result = gustavolessa.ticketing.model.DatabaseOperations.closeTicket(ticketId);
-		return result;
+	public void deleteTicket(String ticketId) {
+		if(StringUtils.isNotBlank(ticketId)) {
+			int n = JOptionPane.showConfirmDialog(tech, "Would you like to delete this ticket?", "Confirmation", JOptionPane.YES_NO_OPTION);
+			if (n==0) {		
+				int deleteResponse = gustavolessa.ticketing.model.DatabaseOperations.deleteTicket(ticketId);
+				if(deleteResponse > 0) {
+					JOptionPane.showMessageDialog(tech, "Ticket deleted successfully!");
+					refreshTech();
+				} else {
+					JOptionPane.showMessageDialog(tech, "Ticket could not be deleted!");
+				}
+			}
+		}
+	}
+
+	public void closeTicket(String ticketId) {
+		if(StringUtils.isNotBlank(ticketId)) {
+			int x = JOptionPane.showConfirmDialog(tech, "Would you like to close this ticket?", "Confirmation", JOptionPane.YES_NO_OPTION);
+			if (x==0) {	
+				int closeResponse = gustavolessa.ticketing.model.DatabaseOperations.closeTicket(ticketId);
+				if(closeResponse > 0) {
+					JOptionPane.showMessageDialog(tech, "Ticket closed successfully!");
+					refreshTech();
+				} else {
+					JOptionPane.showMessageDialog(tech, "Ticket could not be closed!");
+				}
+			}
+		}
 	}
 	
 	/**
@@ -243,20 +328,22 @@ public class Controller implements ActionListener, WindowListener {
 			logout("Tech");
 		} else if(e.getActionCommand().equals("managerLogout")){
 			logout("Manager");
-		} else if(e.getActionCommand().equals("newTicketButton")){
+		} else if(e.getActionCommand().equals("addTicket")){
 			tech.addTicketWindow();
-		} else if(e.getActionCommand().equals("viewTicketsButton")){
-			try {
-				tech.viewTicketsWindow(getTicketsInfo());
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-			}
+		} else if(e.getActionCommand().equals("closeTicket")){
+			closeTicket(tech.checkRowId());
+		} else if(e.getActionCommand().equals("deleteTicket")){
+			deleteTicket(tech.checkRowId());
+		} else if(e.getActionCommand().equals("editTicket")){
+			viewTicket(tech.checkRowId());
 		} else if(e.getActionCommand().equals("close")){
 			System.exit(0);
 		} else if(e.getActionCommand().equals("refreshAdmin")){
 			refreshAdmin();
 		} else if(e.getActionCommand().equals("refreshManager")){
 			refreshManager();
+		} else if(e.getActionCommand().equals("refreshTech")){
+			refreshTech();
 		}
 	}
 	
@@ -302,7 +389,6 @@ public class Controller implements ActionListener, WindowListener {
 		}
 		return data;	
 	}
-
 	
 	/**
 	 * Method to retrieve amount of tickets designated to each tech ID, including user ID and name;
@@ -392,6 +478,9 @@ public class Controller implements ActionListener, WindowListener {
 
 	@Override
 	public void windowClosing(WindowEvent e) {
+		if (JOptionPane.showConfirmDialog(e.getWindow(), "Are you sure to close?", "Confirmation?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+		    System.exit(0);
+		}
 	}
 
 	@Override

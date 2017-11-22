@@ -25,6 +25,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
@@ -50,20 +51,32 @@ public class Admin extends JFrame implements ItemListener{
 
 	//Create getters for private variables
 	public String getNewUserType() {
-		String selected = (String)addUserTypesList.getSelectedItem();
-		if(selected.equals("Tech Support")) {
-			return "Tech";
-		} else {
-		return selected;
+		String selected = "";
+		try {
+			selected = (String)addUserTypesList.getSelectedItem();
+
+
+			if(selected.equals("Tech Support")) {
+				return "Tech";
+			} else {
+				return selected;
+			}
+		} catch (NullPointerException e) {
 		}
+		return selected;
 	}
-	public String getChangePassUserType() {
-		String selected = (String)updateInfoUserTypesList.getSelectedItem();
-		if(selected.equals("Tech Support")) {
-			return "Tech";
-		} else {
-		return selected;
+	public String getChangePassUserType(){
+		String selected = "";
+		try {
+			selected = (String)updateInfoUserTypesList.getSelectedItem();
+			if(selected.equals("Tech Support")) {
+				return "Tech";
+			} else {
+				return selected;
+			}
+		} catch (NullPointerException e) {
 		}
+		return selected;
 	}
 	public String getUpdateInfoUserId() {
 		String selected = (String)updateInfoUserId.getSelectedItem();
@@ -113,11 +126,12 @@ public class Admin extends JFrame implements ItemListener{
 		this.loggedUserId = loggedUserId;
 		setSize(550,300);
 		this.setLayout(new BorderLayout());
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.setTitle("Admin Dashboard");
 		this.setLocationRelativeTo(null);
 		retrieveUserData();
-		
+		this.addWindowListener(controller);
+
 		//Add Menu containing File -> Close
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 		JMenuBar topBar = new JMenuBar();
@@ -225,23 +239,22 @@ public class Admin extends JFrame implements ItemListener{
 		updateInfoPanel.setBorder(changePassBorder);
 		
 		//Create panel and button to Logout
-		JPanel logoutPanel = new JPanel();
-		logoutPanel.setLayout(new FlowLayout());
+		JPanel buttonsPanel = new JPanel();
+		buttonsPanel.setLayout(new FlowLayout());
 		JButton refresh = new JButton("Refresh");
 		refresh.addActionListener(controller);
 		refresh.setActionCommand("refreshAdmin");
 		JButton logout = new JButton("Logout");
 		logout.addActionListener(controller);
 		logout.setActionCommand("adminLogout");
-		logoutPanel.add(refresh);
-		logoutPanel.add(logout);
-		
+		buttonsPanel.add(refresh);
+		buttonsPanel.add(logout);
 	
 		//Add panel to frame
 		centerPanel.add(addUserPanel);
 		centerPanel.add(updateInfoPanel);
 		this.add(centerPanel, BorderLayout.CENTER);
-		this.add(logoutPanel, BorderLayout.SOUTH);	
+		this.add(buttonsPanel, BorderLayout.SOUTH);	
 		
 		validate();
 		repaint();
@@ -250,7 +263,6 @@ public class Admin extends JFrame implements ItemListener{
 	
 	//Method to display the View Users Window
 	public JTable viewUsersTable(String[][] data) {
-		//TODO add button to refresh
 		
         //Set column names
         String[] columnNames = {"ID", "Type", "Name", "Password"};
@@ -281,9 +293,7 @@ public class Admin extends JFrame implements ItemListener{
 	        		}
 	        	}
         });
-
         return table;
-
     }
 	
 	//Method to retrieve users info.
@@ -297,8 +307,7 @@ public class Admin extends JFrame implements ItemListener{
 		userIds = new String[users.length];
 		for(int x=0;x<users.length;x++) {
 			userIds[x] = users[x][0];
-		}
-		
+		}	
 	}
 	
 	/**

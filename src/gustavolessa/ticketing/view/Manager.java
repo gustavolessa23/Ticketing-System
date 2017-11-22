@@ -18,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -46,9 +47,11 @@ public class Manager extends JFrame{
 		this.userID = userID;
 		setSize(700,400);
 		this.setLayout(new BorderLayout());
-		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.setLocationRelativeTo(null);
 		updateTicketStats();
+		this.addWindowListener(controller);
+
 
 		//Add Menu containing File -> Close
 		System.setProperty("apple.laf.useScreenMenuBar", "true");

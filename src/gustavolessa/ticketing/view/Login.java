@@ -1,5 +1,7 @@
 package gustavolessa.ticketing.view;
 
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -15,6 +17,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.WindowConstants;
 
 
 public class Login extends JFrame {
@@ -35,11 +38,12 @@ public class Login extends JFrame {
 
 	public Login(){
 		// set the name of the application menu item
-		setSize(300,300);
-		this.setLayout(new GridLayout(5,1));
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setTitle("Ticketing System");
+		setSize(300,150);
+		this.setLayout(new BorderLayout());
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		this.setTitle("Ticketing System Login");
 		this.setLocationRelativeTo(null);	
+		this.addWindowListener(controller);
 		//TODO Add KeyListener
 		
 		//Add Menu containing File -> Close
@@ -53,24 +57,28 @@ public class Login extends JFrame {
 		              close.addActionListener(controller);
 		              close.setActionCommand("close");
 
-
+		JPanel fields = new JPanel();
+		fields.setLayout(new GridLayout(2,1,5,5));
+		JPanel userPanel = new JPanel();
+		userPanel.setLayout(new FlowLayout());
+		
 		JLabel nameLabel = new JLabel("Username");
 		nameLabel.setHorizontalAlignment(JLabel.CENTER);
-		this.add(nameLabel);
+		userPanel.add(nameLabel);
 
-		JPanel userPanel = new JPanel();
-		userField = new JTextField(20);
+		userField = new JTextField(15);
 		userPanel.add(userField);
-		this.add(userPanel);
-
-		JLabel passLabel = new JLabel("Password");
-		passLabel.setHorizontalAlignment(JLabel.CENTER);
-		this.add(passLabel);
+		fields.add(userPanel);
 
 		JPanel passPanel = new JPanel();
-		passField = new JPasswordField(20);
+		passPanel.setLayout(new FlowLayout());
+		
+		JLabel passLabel = new JLabel("Password");
+		passLabel.setHorizontalAlignment(JLabel.CENTER);
+		passPanel.add(passLabel);
+		passField = new JPasswordField(15);
 		passPanel.add(passField);
-		this.add(passPanel);
+		fields.add(passPanel);
 
 
 		JPanel loginPanel = new JPanel();
@@ -78,7 +86,8 @@ public class Login extends JFrame {
 		login.addActionListener(controller);
 		login.setActionCommand("login");
 		loginPanel.add(login);
-		this.add(loginPanel);
+		this.add(fields, BorderLayout.CENTER);
+		this.add(loginPanel, BorderLayout.SOUTH);
 		
 		getRootPane().setDefaultButton(login);
 		validate();
