@@ -72,6 +72,11 @@ public class DatabaseOperations {
 		String query = "SELECT * FROM users WHERE name = '"+username+"' AND password = '"+password+"';";
 		return defaultConnection(query); 
 	}
+	
+	public static ResultSet getHash(String username) {
+		String query = "SELECT * FROM users WHERE name = '"+username+"';";
+		return defaultConnection(query);
+	}
 
 	public static int registerNewUser(String username, String password, String userType){
 		String query = "INSERT INTO `users` (`name`, `password`, `type`) VALUES ('"+username+"', '"+password+"', '"+userType+"');";

@@ -33,7 +33,7 @@ import javax.swing.border.TitledBorder;
 
 public class Admin extends JFrame implements ItemListener{
 
-	gustavolessa.ticketing.controller.Controller controller = new gustavolessa.ticketing.controller.Controller(this);
+	private gustavolessa.ticketing.controller.Controller controller = new gustavolessa.ticketing.controller.Controller(this);
 	private JTextField addUsernameField;
 	private JPasswordField addPasswordField;
 	private JComboBox addUserTypesList;
@@ -82,23 +82,6 @@ public class Admin extends JFrame implements ItemListener{
 		String selected = (String)updateInfoUserId.getSelectedItem();
 		return selected;
 	}
-	public void setUpdateInfoUserType(String type) {
-		switch(type) {
-		case "Admin":
-			updateInfoUserTypesList.setSelectedIndex(0);
-			break;
-		case "Tech":
-			updateInfoUserTypesList.setSelectedIndex(1);
-			break;
-		case "Manager":
-			updateInfoUserTypesList.setSelectedIndex(2);
-			break;
-		default:
-			updateInfoUserTypesList.setSelectedIndex(-1);
-			break;
-			//stem.out.println("Couldn't determine user type to select");
-		}		
-	}
 	public String getAddUsernameField() {
 		return addUsernameField.getText();
 	}
@@ -119,6 +102,28 @@ public class Admin extends JFrame implements ItemListener{
 	}
 	public String getLoggedUserId() {
 		return loggedUserId;
+	}
+	
+	/**
+	 * Method to update user type JComboBox using information retrieved from database.
+	 * @param type to be selected.
+	 */
+	private void setUpdateInfoUserType(String type) {
+		switch(type) {
+		case "Admin":
+			updateInfoUserTypesList.setSelectedIndex(0);
+			break;
+		case "Tech":
+			updateInfoUserTypesList.setSelectedIndex(1);
+			break;
+		case "Manager":
+			updateInfoUserTypesList.setSelectedIndex(2);
+			break;
+		default:
+			updateInfoUserTypesList.setSelectedIndex(-1);
+			break;
+			//stem.out.println("Couldn't determine user type to select");
+		}		
 	}
 	
 	//Constructor that takes userID as parameter
@@ -193,7 +198,7 @@ public class Admin extends JFrame implements ItemListener{
             }
         };
         JPanel updateInfoFields = new JPanel();
-		JLabel updateInfoIdLabel = new JLabel("User ID: ");
+		JLabel updateInfoIdLabel = new JLabel("Choose User ID: ");
 		updateInfoUserId = new JComboBox(userIds);
 		updateInfoUserId.setSelectedIndex(-1);
 		updateInfoUserId.addItemListener(this);
@@ -202,9 +207,9 @@ public class Admin extends JFrame implements ItemListener{
 		updateInfoUserTypesList.setSelectedIndex(-1);
 		JLabel updateInfoUsernameLabel = new JLabel("Username: ");
 		updateInfoUsernameField = new JTextField();
-		JLabel updateInfoPassLabel = new JLabel("Password: ");
+		JLabel updateInfoPassLabel = new JLabel("New password: ");
 		updateInfoPasswordField = new JPasswordField();
-		JLabel updateInfoConfirmPassLabel = new JLabel("Confirm password: ");
+		JLabel updateInfoConfirmPassLabel = new JLabel("Confirm new password: ");
 		updateInfoConfirmPasswordField = new JPasswordField();
 		JButton updateInfoButton = new JButton("Update");
 		
@@ -261,42 +266,11 @@ public class Admin extends JFrame implements ItemListener{
 		setVisible(true);
 	}
 	
-	//Method to display the View Users Window
-	public JTable viewUsersTable(String[][] data) {
-		
-        //Set column names
-        String[] columnNames = {"ID", "Type", "Name", "Password"};
-        
-        //Table non editable
-        JTable table = new JTable(data, columnNames){
-            @Override
-            public Dimension getPreferredSize() {
-                return new Dimension(600, 350);
-            }
-        };
-        table.setDefaultEditor(Object.class, null);
-        table.setAutoCreateRowSorter(true);
-        
-        table.getColumnModel().getColumn(0).setPreferredWidth(10);
-        table.getColumnModel().getColumn(1).setPreferredWidth(100);
-        table.getColumnModel().getColumn(2).setPreferredWidth(100);
-        table.getColumnModel().getColumn(3).setPreferredWidth(50);
-        pack();
-        //Add Mouse Listener to table, that detects double clicks on rows.
-        table.addMouseListener(new MouseAdapter() {
-	        	public void mouseClicked(MouseEvent e) {
-	        		if (e.getClickCount() == 2) {
-	        			JTable target = (JTable) e.getSource();
-	        			int row = target.getSelectedRow();
-	        			int idToView = Integer.parseInt(data[row][0]);
-	        			controller.viewUser(idToView);
-	        		}
-	        	}
-        });
-        return table;
-    }
+
 	
-	//Method to retrieve users info.
+	/**
+	 * Method to retrieve users info, populating global variable userIds. 
+	 */
 	public void retrieveUserData() {
 		try {
 			users = controller.getUsersInfo();
@@ -315,24 +289,27 @@ public class Admin extends JFrame implements ItemListener{
 	 * @param selectedId
 	 */
 	public void setUpdateInfo(String selectedId) {
+		updateInfoPasswordField.setText("");
+		updateInfoConfirmPasswordField.setText("");
 		if(selectedId.equals("-1")) {
 			updateInfoUsernameField.setText("");
-			updateInfoPasswordField.setText("");
-			updateInfoConfirmPasswordField.setText("");
 			setUpdateInfoUserType("");
 			updateInfoUserId.setSelectedIndex(-1);
 		} else {
 			for(int x=0;x<users.length;x++) {
 				if(users[x][0] == selectedId) {
 					updateInfoUsernameField.setText(users[x][1]);
-					updateInfoPasswordField.setText(users[x][2]);
-					updateInfoConfirmPasswordField.setText(users[x][2]);
+					//updateInfoPasswordField.setText(users[x][2]);
+					//updateInfoConfirmPasswordField.setText(users[x][2]);
 					setUpdateInfoUserType(users[x][3]);
 				}
 			}		
 		}
 	}
 	
+	/**
+	 * Method from ItemListener that detects when JComboBox had an item selected.
+	 */
     @Override
     public void itemStateChanged(ItemEvent event) {
        if (event.getStateChange() == ItemEvent.SELECTED) {

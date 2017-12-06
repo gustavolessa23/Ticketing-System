@@ -3,10 +3,9 @@ package gustavolessa.ticketing.view;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.sql.SQLException;
 import java.text.DecimalFormat;
-
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -19,14 +18,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
-import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 
 public class Manager extends JFrame{
 
 	private String userID;
-	gustavolessa.ticketing.controller.Controller controller = new gustavolessa.ticketing.controller.Controller(this);
+	private gustavolessa.ticketing.controller.Controller controller = new gustavolessa.ticketing.controller.Controller(this);
 	private double openCost;
 	private double closedCost;
 	private double totalCost;
@@ -34,9 +32,9 @@ public class Manager extends JFrame{
 	private int closedTickets;
 	private int totalTickets;
 	private int costPerTicket = 50;
-	BarChart chart;
+	private BarChart chart;
 	
-	DecimalFormat decim = new DecimalFormat("#.00");
+	private DecimalFormat decim = new DecimalFormat("#.00");
 	
 	public String getUserID() {
 		return userID;
@@ -124,6 +122,7 @@ public class Manager extends JFrame{
 		
 		//Create bottom panel (buttons) and set its ActionListeners
 		JPanel bottomPanel = new JPanel();
+		bottomPanel.setLayout(new FlowLayout());
 		JButton refresh = new JButton("Refresh");
 		refresh.addActionListener(controller);
 		refresh.setActionCommand("refreshManager");
@@ -194,6 +193,10 @@ public class Manager extends JFrame{
 		setVisible(true);
 	}
 	
+	/**
+	 * Retrieves tickets per tech staff information from database (using controller), creates a JTable and returns it.
+	 * @return JTable
+	 */
 	public JTable displayTechTicketsTable() {
 		String[][] data = controller.getTicketsPerTech();
 		String [] columns = {"Tech ID", "Username","Tickets"};
@@ -201,7 +204,9 @@ public class Manager extends JFrame{
 		return table;
 	}
 	
-	
+	/**
+	 * Updates tickets statistics, retrieving them from database (using controller), and storing in variables to be used by tables and graphs.
+	 */
 	public void updateTicketStats() {
 		int[] stats = controller.retrieveTicketStats();
 		openTickets = stats[0];
@@ -211,7 +216,11 @@ public class Manager extends JFrame{
 		closedCost = Double.parseDouble(decim.format((closedTickets*costPerTicket)));
 		totalCost = Double.parseDouble(decim.format((totalTickets*costPerTicket)));
 	}
-
+	
+	/**
+	 * Formats the array taken by the Graph, including the information previously retrieved from database and two empty bars, in order to display the graph nicely.
+	 * @return double[] values.
+	 */
 	public double[] graphValues(){
 		double[] values = new double[5];
 		values[0] = openCost;
@@ -221,7 +230,11 @@ public class Manager extends JFrame{
 		values[4] = totalCost;
 		return values;
 	}
-
+	
+	/**
+	 * Formats the graph labels using information retrived from database.
+	 * @return String[] graphLabels.
+	 */
 	public String[] graphLabels() {
 		String openLabel = "Open: "+openTickets;
 		String closedLabel = "Closed: "+closedTickets;
@@ -237,6 +250,10 @@ public class Manager extends JFrame{
 		return labels;
 	}
 
+	/**
+	 * Formats the colors array of Strings.
+	 * @return Color[] graphColors.
+	 */
 	public Color[] graphColors() {
 		Color[] colors = new Color[]{
 				Color.red,
@@ -247,6 +264,5 @@ public class Manager extends JFrame{
 		};
 		return colors;
 	}
-
 
 }

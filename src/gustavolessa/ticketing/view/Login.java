@@ -26,7 +26,7 @@ public class Login extends JFrame {
 	private JPasswordField passField;
 	private String userID;
 
-	gustavolessa.ticketing.controller.Controller controller= new gustavolessa.ticketing.controller.Controller(this);
+	private gustavolessa.ticketing.controller.Controller controller= new gustavolessa.ticketing.controller.Controller(this);
 	
 	public String getUserField() {
 		return userField.getText();
@@ -44,7 +44,6 @@ public class Login extends JFrame {
 		this.setTitle("Ticketing System Login");
 		this.setLocationRelativeTo(null);	
 		this.addWindowListener(controller);
-		//TODO Add KeyListener
 		
 		//Add Menu containing File -> Close
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
@@ -57,6 +56,7 @@ public class Login extends JFrame {
 		              close.addActionListener(controller);
 		              close.setActionCommand("close");
 
+		 //Create panels for fields and labels             
 		JPanel fields = new JPanel();
 		fields.setLayout(new GridLayout(2,1,5,5));
 		JPanel userPanel = new JPanel();
@@ -80,12 +80,14 @@ public class Login extends JFrame {
 		passPanel.add(passField);
 		fields.add(passPanel);
 
-
+		//Create panel for button
 		JPanel loginPanel = new JPanel();
 		JButton login = new JButton("Login");
 		login.addActionListener(controller);
 		login.setActionCommand("login");
 		loginPanel.add(login);
+		
+		//Add panels to Frame
 		this.add(fields, BorderLayout.CENTER);
 		this.add(loginPanel, BorderLayout.SOUTH);
 		

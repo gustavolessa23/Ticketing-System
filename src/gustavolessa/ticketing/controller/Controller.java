@@ -17,7 +17,7 @@ import javax.swing.JOptionPane;
 import org.apache.commons.lang3.StringUtils;
 
 public class Controller implements ActionListener, WindowListener {
-	// Declare and instantiate Main class in order to be able to use it's methods and components
+	// Declare and instantiate JFrame classes in order to be able to interact with them.
 	gustavolessa.ticketing.view.Login login = null;
 	gustavolessa.ticketing.view.Admin admin = null;
 	gustavolessa.ticketing.view.Tech tech = null;
@@ -62,7 +62,6 @@ public class Controller implements ActionListener, WindowListener {
 			}
 			break;
 		default:
-			System.out.println("User type could not be identified!");
 			break;
 		}
 		if(a == 0) {
@@ -73,50 +72,49 @@ public class Controller implements ActionListener, WindowListener {
 	public void login() {
 		String username = login.getUserField();
 		String password = login.getPassField();
-		String userID;
-		String userType;
+		String userID = null;
+		String userType = null;
+		String hashedPass = null;
 		String[] result = new String[2];
-		ResultSet rs = gustavolessa.ticketing.model.DatabaseOperations.login(username, password);
+		
+		//Retrieve hashed pass from database
+		ResultSet rsHash = gustavolessa.ticketing.model.DatabaseOperations.getHash(username);
 		try {
-			while(rs.next()){
-				userID = rs.getString("id");
-				userType = rs.getString("type");
-				result[0] = userID;
-				result[1] = userType;
+			while(rsHash.next()){
+				hashedPass = rsHash.getString("password");
+				userID = rsHash.getString("id");
+				userType = rsHash.getString("type");
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} 
-		userID = result[0];
-		userType = result[1];
-		if(userID == null || userType == null) {
-			JOptionPane.showMessageDialog(login, "Login details don't match!");
+		
+		//Check if something was found.
+		if(StringUtils.isBlank(hashedPass) || StringUtils.isBlank(userID) || StringUtils.isBlank(userType)) {
+			JOptionPane.showMessageDialog(login, "User not found!");
 		} else {
-			switch(userType){
-			case "Admin":
-				System.out.println("User is Admin!");
-				login.dispose();
-				new gustavolessa.ticketing.view.Admin(result[0]);
-				break;
-			case "Tech":
-				System.out.println("User is Tech Support!");
-				login.dispose();
-				new gustavolessa.ticketing.view.Tech(result[0]);
-				break;
-			case "Manager":
-				System.out.println("User is Manager!");
-				login.dispose();
-				new gustavolessa.ticketing.view.Manager(result[0]);
-				break;
-			default:
-				System.out.println("User type could not be identified!");
-				break;
+			//Check if password match
+			if(!checkPassword(password, hashedPass)) {		
+				JOptionPane.showMessageDialog(login, "Incorrect password!");
+			} else {
+				switch(userType){
+				case "Admin":
+					login.dispose();
+					new gustavolessa.ticketing.view.Admin(result[0]);
+					break;
+				case "Tech":
+					login.dispose();
+					new gustavolessa.ticketing.view.Tech(result[0]);
+					break;
+				case "Manager":
+					login.dispose();
+					new gustavolessa.ticketing.view.Manager(result[0]);
+					break;
+				default:
+					System.out.println("User type could not be identified!");
+					break;
+				}
 			}
-			String id = result[0];
-			System.out.println("ID: " + id);
-
-			String sid = login.getUserField();
-			System.out.println("UN: " + sid);
 		}
 	}
 	
@@ -128,7 +126,8 @@ public class Controller implements ActionListener, WindowListener {
 		String result="";
 		if(StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password) && StringUtils.isNotBlank(userType)) {
 			if(password.equals(confirmPassword)) {
-				int retrieved = gustavolessa.ticketing.model.DatabaseOperations.registerNewUser(username, password, userType);	
+				String hashedPass = encryptPassword(password);
+				int retrieved = gustavolessa.ticketing.model.DatabaseOperations.registerNewUser(username, hashedPass, userType);	
 				if (retrieved>0) {
 					result = "User Registered!";
 	            } else {
@@ -170,8 +169,9 @@ public class Controller implements ActionListener, WindowListener {
 		String result="";
 		if(StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password) && StringUtils.isNotBlank(id)) {
 			if(password.equals(confirmPassword)) {
+				String hashedPass = encryptPassword(password);
 				String userType = admin.getChangePassUserType();
-				int confirm = gustavolessa.ticketing.model.DatabaseOperations.updateUserInfo(id, username, password, userType);
+				int confirm = gustavolessa.ticketing.model.DatabaseOperations.updateUserInfo(id, username, hashedPass, userType);
 				if (confirm > 0 ) {
 					result = username+"'s info updated successfully!";
 	            } else {
@@ -348,6 +348,24 @@ public class Controller implements ActionListener, WindowListener {
 	}
 	
 	/**
+	 * Method to encrypt password using BCrypt
+	 * @param String password
+	 * @return String hashedPassword
+	 */
+	public String encryptPassword(String password) {
+		return gustavolessa.ticketing.model.BCrypt.hashpw(password, gustavolessa.ticketing.model.BCrypt.gensalt());
+	}
+	
+	public boolean checkPassword(String password, String hash) {
+		 if (gustavolessa.ticketing.model.BCrypt.checkpw(password, hash)) {
+			 return true;
+		 } else {
+			 return false;
+		 }
+	}
+	
+	
+	/**
 	 * Method to retrieve all tickets' info as a String[][]
 	 * @return String [][]
 	 * @throws SQLException
@@ -363,6 +381,7 @@ public class Controller implements ActionListener, WindowListener {
 		}
 		rsmd = rs.getMetaData();
 		int maxColumn = rsmd.getColumnCount();
+		
 		//Create 2D array to store and display data
 		if(maxColumn <=0){
 			data = new String[100][100];
@@ -502,7 +521,6 @@ public class Controller implements ActionListener, WindowListener {
 	@Override
 	public void windowDeactivated(WindowEvent e) {
 	}
-
 	
 	public void viewUser(int idToView) {
 		// TODO create this method

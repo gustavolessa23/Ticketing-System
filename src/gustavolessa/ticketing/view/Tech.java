@@ -238,8 +238,6 @@ public class Tech extends JFrame{
 	        	} else {
 	        		JOptionPane.showMessageDialog(this, "Ticket could not be added!");
 	        	}
-        } else {
-        	System.out.println("Cancelled");
         }
     }
 
@@ -339,23 +337,17 @@ public class Tech extends JFrame{
 
 	    switch(result) {
 	    case 0:
-		    	System.out.println("cancel");
 		    	break;
 	    case 1:
-		    	System.out.println("delete");
 		    	controller.deleteTicket(ticketId);
 		    	break;
 	    case 2:
-		    	System.out.println("close");
 		    	controller.closeTicket(ticketId);
 		    	break; 	
 	    case 3:
-		    	System.out.println("update");
-		    	System.out.println(getTechId());
 		    controller.updateTicket(ticketId, getTechId(), (String)priority.getSelectedItem(), fieldDescription.getText());
 		    	break; 	
 	    default:
-		    	System.out.println("error");
 		    	break;
 	    }
 	}
