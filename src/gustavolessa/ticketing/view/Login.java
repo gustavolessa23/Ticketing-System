@@ -1,11 +1,15 @@
+/**
+ * Ticketing System
+ * Author: Gustavo Lessa (https://github.com/gustavolessadublin)
+ * 
+ * December 2017 
+ */
+
 package gustavolessa.ticketing.view;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -15,18 +19,15 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.WindowConstants;
 
 
+@SuppressWarnings("serial")
 public class Login extends JFrame {
 
 	private JTextField userField;
 	private JPasswordField passField;
-	private String userID;
-
-	private gustavolessa.ticketing.controller.Controller controller= new gustavolessa.ticketing.controller.Controller(this);
+	private gustavolessa.ticketing.controller.Controller controller = new gustavolessa.ticketing.controller.Controller(this);
 	
 	public String getUserField() {
 		return userField.getText();
@@ -43,18 +44,21 @@ public class Login extends JFrame {
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.setTitle("Ticketing System Login");
 		this.setLocationRelativeTo(null);	
+		//this.setLocationByPlatform(true);
 		this.addWindowListener(controller);
 		
 		//Add Menu containing File -> Close
-		System.setProperty("apple.laf.useScreenMenuBar", "true");
-	      JMenuBar topBar = new JMenuBar();
-	        this.setJMenuBar(topBar);
-	        JMenu file = new JMenu("File");
-	          topBar.add(file);
-	              JMenuItem close = new JMenuItem("Close");
-	              file.add(close);
-		              close.addActionListener(controller);
-		              close.setActionCommand("close");
+		if (System.getProperty("os.name").contains("Mac")) {
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+		}	      
+		JMenuBar topBar = new JMenuBar();
+		this.setJMenuBar(topBar);
+		JMenu file = new JMenu("File");
+		topBar.add(file);
+		JMenuItem close = new JMenuItem("Close");
+		file.add(close);
+		close.addActionListener(controller);
+		close.setActionCommand("close");
 
 		 //Create panels for fields and labels             
 		JPanel fields = new JPanel();
@@ -99,6 +103,15 @@ public class Login extends JFrame {
 	}
 	
 	public static void main(String[] args) {
-		new Login();
+		java.awt.EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				Boolean readmeShowed = false;
+				if(!readmeShowed) {
+					new Notes();
+					readmeShowed = true;
+				}
+				new Login();
+			}
+		});
 	}
 }

@@ -1,19 +1,22 @@
-# Ticketing-System
+Ticketing System
+
 Author: Gustavo Lessa (https://github.com/gustavolessadublin)
 December 2017
 
 
-# ACCOUNTS:
+
+ACCOUNTS:
 Username	Password	Type
-- manager		manager		manager
-- admin			admin				admin
-- John	 John	tech
-- Johan	Johan	tech
-- James	James	tech
+——————————————————————————
+manager	manager	manager
+admin	admin	admin
+John	 John	tech
+Johan	Johan	tech
+James	James	tech
 
 
-
-# ACCOUNTS FUNCTIONS:
+ACCOUNTS MAIN FUNCTIONS:
+——————————————————————————
 - Admin: add user and update user information
 
 - Tech support: view all tickets, open new ticket, close ticket, delete ticket, update ticket.
@@ -21,8 +24,8 @@ Username	Password	Type
 - Manager: overview tickets stats (numbers and graph) and check amount of work of each Tech Support staff.
 
 
-
-# DATABASE:
+DATABASE:
+——————————————————————————
 - TicketingSystem.sql can be use to restore database for this application;
 
 - MariaDB RDBMS was used along with jConnector.
@@ -33,9 +36,8 @@ Username	Password	Type
 
 
 
-
-
-# CODE FEATURES AND DETAILS:
+CODE FEATURES AND DETAILS:
+——————————————————————————
 - ReadMe screen appears only once.
 
 - If the system is a MacOS, the menu will be displayed on the top. Otherwise, the default menu will be shown.
@@ -52,14 +54,18 @@ Username	Password	Type
 
 
 
-# ADMIN ACCOUNT INFO:
+ADMIN ACCOUNT INFO:
+——————————————————————————
+
 - Admin dashboard contains two main panels, one for Adding users and another to Update user information.
 
 - On the update panel, when an user ID is selected, an Item Listener is triggered and the other fields are populated automatically. Any modification will be transferred to the database on pressing Update button.
 
 
 
-# TECH SUPPORT ACCOUNT INFO:
+TECH SUPPORT ACCOUNT INFO:
+——————————————————————————
+
 - When a ticket is double-clicked or selected and the Edit button clicked, a new screen is opened, displaying ticket details. 
 
 - If the ticket is open, this screen will contain button allowing the user to Close, Delete or Update ticket.
@@ -71,7 +77,9 @@ Username	Password	Type
 - The New ticket button shows a dialog containing a form to Add new ticket. The system was designed to allow only one Tech Support staff to be assigned to each ticket. So, a dynamically populated drop-down menu allows the user to choose to which tech staff the ticket will be assigned.
 
 
-# MANAGER ACCOUNT INFO:
+MANAGER ACCOUNT INFO:
+——————————————————————————
+
 - The manager dashboard contains three panels: Overview, Tickets per Tech Staff and Graph.
 
 - All the information is dynamically displayed. When Refresh is clicked, up-to-date data is retrieved from the database.

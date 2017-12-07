@@ -2,14 +2,10 @@ package gustavolessa.ticketing.view;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
@@ -26,13 +22,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.WindowConstants;
-import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
 import org.apache.commons.lang3.StringUtils;
 
+@SuppressWarnings("serial")
 public class Tech extends JFrame{
 	
 	//Set controller
@@ -61,8 +56,7 @@ public class Tech extends JFrame{
 
 	public Tech(String userId){
 		this.userId = userId;
-		//Set frame settings
-		
+
 		//setSize(700,400);
 		this.setLayout(new BorderLayout());
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -71,7 +65,9 @@ public class Tech extends JFrame{
 
 		
 		//Add Menu containing File -> Close
-		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		if (System.getProperty("os.name").contains("Mac")) {
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+		}
 		JMenuBar topBar = new JMenuBar();
 		this.setJMenuBar(topBar);
 		JMenu file = new JMenu("File");

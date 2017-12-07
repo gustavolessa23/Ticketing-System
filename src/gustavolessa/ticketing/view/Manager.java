@@ -21,6 +21,7 @@ import javax.swing.WindowConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 
+@SuppressWarnings("serial")
 public class Manager extends JFrame{
 
 	private String userID;
@@ -52,7 +53,9 @@ public class Manager extends JFrame{
 
 
 		//Add Menu containing File -> Close
-		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		if (System.getProperty("os.name").contains("Mac")) {
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+		}
 		JMenuBar topBar = new JMenuBar();
 		this.setJMenuBar(topBar);
 		JMenu file = new JMenu("File");

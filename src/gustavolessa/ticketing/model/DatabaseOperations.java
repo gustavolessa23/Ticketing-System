@@ -1,13 +1,10 @@
 package gustavolessa.ticketing.model;
 
-import java.awt.Component;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-
 
 public class DatabaseOperations {
 
@@ -120,6 +117,11 @@ public class DatabaseOperations {
 	
 	public static ResultSet viewUsers() {
 		String query = "SELECT * FROM users;"; 
+		return defaultConnection(query);
+	}
+	
+	public static ResultSet checkUsername(String name) {
+		String query = "SELECT * FROM users WHERE name = '"+name+"';";
 		return defaultConnection(query);
 	}
 	

@@ -6,8 +6,6 @@ import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 
 import javax.swing.BorderFactory;
@@ -18,19 +16,15 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
-import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
 //import gustavolessa.ticketing.controller.Controller;
 
+@SuppressWarnings("serial")
 public class Admin extends JFrame implements ItemListener{
 
 	private gustavolessa.ticketing.controller.Controller controller = new gustavolessa.ticketing.controller.Controller(this);
@@ -45,7 +39,6 @@ public class Admin extends JFrame implements ItemListener{
 	private JPasswordField updateInfoPasswordField;
 	private JPasswordField addUserConfirmPasswordField;
 	private JPasswordField updateInfoConfirmPasswordField;
-	private JTable usersTable;
 	private String[][] users;
 	private String[] userIds;
 
@@ -129,7 +122,7 @@ public class Admin extends JFrame implements ItemListener{
 	//Constructor that takes userID as parameter
 	public Admin(String loggedUserId){
 		this.loggedUserId = loggedUserId;
-		setSize(550,300);
+		setSize(640,300);
 		this.setLayout(new BorderLayout());
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		this.setTitle("Admin Dashboard");
@@ -138,7 +131,9 @@ public class Admin extends JFrame implements ItemListener{
 		this.addWindowListener(controller);
 
 		//Add Menu containing File -> Close
-		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		if (System.getProperty("os.name").contains("Mac")) {
+			System.setProperty("apple.laf.useScreenMenuBar", "true");
+		}
 		JMenuBar topBar = new JMenuBar();
 		this.setJMenuBar(topBar);
 		JMenu file = new JMenu("File");
@@ -149,19 +144,14 @@ public class Admin extends JFrame implements ItemListener{
 		close.setActionCommand("close");
 
 		//Create center panel with GridLayout              
-		JPanel centerPanel = new JPanel(){
-            @Override
-            public Dimension getPreferredSize() {
-                return new Dimension(700, 450);
-            }
-        };
+		JPanel centerPanel = new JPanel();
 		centerPanel.setLayout(new GridLayout(1,2));
                 
 		//Create panel "Add User" and its components.
 		JPanel addUserPanel = new JPanel(){
             @Override
             public Dimension getPreferredSize() {
-                return new Dimension(300, 400);
+                return new Dimension(300, 350);
             }
         };
         JPanel addUserFields = new JPanel();
@@ -194,7 +184,7 @@ public class Admin extends JFrame implements ItemListener{
 		JPanel updateInfoPanel = new JPanel(){
             @Override
             public Dimension getPreferredSize() {
-                return new Dimension(300, 400);
+                return new Dimension(350, 350);
             }
         };
         JPanel updateInfoFields = new JPanel();
@@ -265,7 +255,6 @@ public class Admin extends JFrame implements ItemListener{
 		repaint();
 		setVisible(true);
 	}
-	
 
 	
 	/**
@@ -299,8 +288,6 @@ public class Admin extends JFrame implements ItemListener{
 			for(int x=0;x<users.length;x++) {
 				if(users[x][0] == selectedId) {
 					updateInfoUsernameField.setText(users[x][1]);
-					//updateInfoPasswordField.setText(users[x][2]);
-					//updateInfoConfirmPasswordField.setText(users[x][2]);
 					setUpdateInfoUserType(users[x][3]);
 				}
 			}		

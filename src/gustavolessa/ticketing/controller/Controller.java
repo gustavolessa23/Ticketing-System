@@ -4,16 +4,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.JOptionPane;
+
 import org.apache.commons.lang3.StringUtils;
 
 public class Controller implements ActionListener, WindowListener {
@@ -125,19 +122,32 @@ public class Controller implements ActionListener, WindowListener {
 		String userType = admin.getNewUserType();
 		String result="";
 		if(StringUtils.isNotBlank(username) && StringUtils.isNotBlank(password) && StringUtils.isNotBlank(userType)) {
-			if(password.equals(confirmPassword)) {
-				String hashedPass = encryptPassword(password);
-				int retrieved = gustavolessa.ticketing.model.DatabaseOperations.registerNewUser(username, hashedPass, userType);	
-				if (retrieved>0) {
-					result = "User Registered!";
-	            } else {
-	            		result = "User could not be registered!";
-	            }
-				JOptionPane.showMessageDialog(admin, result);
-				refreshAdmin();
+			ResultSet checkUser = gustavolessa.ticketing.model.DatabaseOperations.checkUsername(username);
+			boolean userExists = false;
+			try {
+				while(checkUser.next()) {
+					userExists = true;
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			if(!userExists) {
+				if(password.equals(confirmPassword)) {
+					String hashedPass = encryptPassword(password);
+					int retrieved = gustavolessa.ticketing.model.DatabaseOperations.registerNewUser(username, hashedPass, userType);	
+					if (retrieved>0) {
+						result = "User Registered!";
+		            } else {
+		            		result = "User could not be registered!";
+		            }
+					JOptionPane.showMessageDialog(admin, result);
+					refreshAdmin();
+				} else {
+					JOptionPane.showMessageDialog(admin, "Passwords don't match.");
+				}
 			} else {
-				JOptionPane.showMessageDialog(admin, "Passwords don't match!");
-			}			
+				JOptionPane.showMessageDialog(admin, "Username already exists.");
+			}
 		} else {
 			JOptionPane.showMessageDialog(admin, "All fields are required.");
 		}
@@ -269,14 +279,25 @@ public class Controller implements ActionListener, WindowListener {
 
 	public void closeTicket(String ticketId) {
 		if(StringUtils.isNotBlank(ticketId)) {
-			int x = JOptionPane.showConfirmDialog(tech, "Would you like to close this ticket?", "Confirmation", JOptionPane.YES_NO_OPTION);
-			if (x==0) {	
-				int closeResponse = gustavolessa.ticketing.model.DatabaseOperations.closeTicket(ticketId);
-				if(closeResponse > 0) {
-					JOptionPane.showMessageDialog(tech, "Ticket closed successfully!");
-					refreshTech();
-				} else {
-					JOptionPane.showMessageDialog(tech, "Ticket could not be closed!");
+			ResultSet rs = gustavolessa.ticketing.model.DatabaseOperations.viewTicketDetails(ticketId);
+			String closed = null;
+			try {
+				while(rs.next()){
+					closed = rs.getString("close_date");
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} 
+			if(StringUtils.isBlank(closed)) {
+				int x = JOptionPane.showConfirmDialog(tech, "Would you like to close this ticket?", "Confirmation", JOptionPane.YES_NO_OPTION);
+				if (x==0) {	
+					int closeResponse = gustavolessa.ticketing.model.DatabaseOperations.closeTicket(ticketId);
+					if(closeResponse > 0) {
+						JOptionPane.showMessageDialog(tech, "Ticket closed successfully!");
+						refreshTech();
+					} else {
+						JOptionPane.showMessageDialog(tech, "Ticket could not be closed!");
+					}
 				}
 			}
 		}
